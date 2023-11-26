@@ -9,11 +9,11 @@ type Writer struct {
 	ioWriter io.Writer
 	buffer   []byte
 	currByte byte
-	cursor   int8
+	cursor   uint8
 	debug    bool
 }
 
-func (w *Writer) WriteBit(bit int) (int) {
+func (w *Writer) WriteBit(bit uint8) int {
 	// if bit = 0, we just increment the cursor since currByte is always 00000000 in the beginning
 	if bit == 1 {
 		w.currByte = w.currByte | (0b10000000 >> w.cursor)
@@ -25,7 +25,13 @@ func (w *Writer) WriteBit(bit int) (int) {
 		w.currByte = 0
 	}
 
-	return 1;
+	return 1
+}
+
+func (w *Writer) WriteMultipleBits(bits ...uint8) {
+	for _, b := range bits {
+		w.WriteBit(b)
+	}
 }
 
 func (w *Writer) WriteByte(b byte) int {
@@ -43,7 +49,7 @@ func (w *Writer) WriteByte(b byte) int {
 	return 8
 }
 
-func (w *Writer) WriteTree(n *Node) (uint32) {
+func (w *Writer) WriteTree(n *Node) uint32 {
 	if n.Left == nil && n.Right == nil {
 		return uint32(w.WriteBit(1) + w.WriteByte(n.ch))
 	}
@@ -63,7 +69,7 @@ func (w *Writer) Debug() {
 	fmt.Println("+++++++++++++++++++++++++++++")
 }
 
-func (w *Writer) Flush() {
+func (w *Writer) Flush() (int, error) {
 	if w.cursor != 0 {
 		w.buffer = append(w.buffer, w.currByte)
 
@@ -77,8 +83,13 @@ func (w *Writer) Flush() {
 		w.Debug()
 	}
 
-	w.ioWriter.Write(w.buffer)
+	n, err := w.ioWriter.Write(w.buffer)
+	if err != nil {
+		return 0, err
+	}
+
 	w.buffer = []byte{}
 	w.currByte = 0
 	w.cursor = 0
+	return n, nil
 }

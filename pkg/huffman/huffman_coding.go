@@ -1,12 +1,14 @@
 package huffman
 
 import (
+	"fmt"
 	"os"
 	"sort"
 )
 
 type Huffman struct {
-	tree *Node
+	tree  *Node
+	codes map[byte]([]uint8)
 }
 
 func (h *Huffman) DisplayTree() {
@@ -72,6 +74,13 @@ func (h *Huffman) constructTree(t []byte) {
 			break
 		}
 	}
+
+	h.codes = make(map[byte][]uint8)
+	for b := range occurences {
+		var path []uint8
+		h.tree.Find(b, &path, true, 0)
+		h.codes[b] = path
+	}
 }
 
 func (h *Huffman) Encode(inputFile string, outputFile string) error {
@@ -87,10 +96,9 @@ func (h *Huffman) Encode(inputFile string, outputFile string) error {
 	defer f.Close()
 
 	h.constructTree(data)
-	h.tree.Display(0)
 
 	w := Writer{
-		debug:    true,
+		debug:    false,
 		ioWriter: f,
 	}
 
@@ -103,14 +111,17 @@ func (h *Huffman) Encode(inputFile string, outputFile string) error {
 	if byte_encode_err != nil {
 		return byte_encode_err
 	}
-	// fmt.Printf("tree size : %d, ", tree_size,)
-	// for _, v := range buf.Bytes() {
-	// 	fmt.Printf("%08b ", v)
-	// }
-	// fmt.Printf("\n")
-
 	w.buffer = append(tree_size_bytes, w.buffer...)
 
-	w.Flush()
+	for _, b := range data {
+		code := h.codes[b]
+		w.WriteMultipleBits(code...)
+	}
+	n, flush_err := w.Flush()
+
+	if flush_err != nil {
+		return flush_err
+	}
+	fmt.Printf("Written %d bytes. Original: %d bytes. Saved %0.2f%%.\n", n, len(data), float32(n)/float32(len(data)) * 100)
 	return nil
 }

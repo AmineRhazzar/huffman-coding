@@ -1,7 +1,6 @@
 package huffman
 
 import (
-	"fmt"
 	"os"
 	"sort"
 )
@@ -10,8 +9,8 @@ type Huffman struct {
 	tree *Node
 }
 
-func (h *Huffman)DisplayTree() {
-	h.tree.Display(0);
+func (h *Huffman) DisplayTree() {
+	h.tree.Display(0)
 }
 
 func (h *Huffman) constructTree(t []byte) {
@@ -75,16 +74,43 @@ func (h *Huffman) constructTree(t []byte) {
 	}
 }
 
-func (h *Huffman) Encode(inputFile string, outputFile string) (error) {
-	data, err := os.ReadFile(inputFile)
-	if(err != nil) {
-		return err;
+func (h *Huffman) Encode(inputFile string, outputFile string) error {
+	data, read_err := os.ReadFile(inputFile)
+	if read_err != nil {
+		return read_err
 	}
+
+	f, write_err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0600)
+	if write_err != nil {
+		return write_err
+	}
+	defer f.Close()
 
 	h.constructTree(data)
 	h.tree.Display(0)
-	fmt.Println(h.tree.encode())
 
-	return nil;
+	w := Writer{
+		debug:    true,
+		ioWriter: f,
+	}
+
+	// since we use a uint32 for tree size, it's gonna be encoded on 4 bytes even if it can be encoded on less
+	// we can further optimise this, we can use the first 3 bits to indicates how many bytes (SIZE_L) the size is encoded on (0->7 or 000 -> 111)
+	// and then we take the next SIZE_L bytes and that's the size of our tree. it doesn't seem like it's worth it
+	tree_size := w.WriteTree(h.tree)
+	tree_size_bytes, byte_encode_err := ByteEncode(tree_size)
+
+	if byte_encode_err != nil {
+		return byte_encode_err
+	}
+	// fmt.Printf("tree size : %d, ", tree_size,)
+	// for _, v := range buf.Bytes() {
+	// 	fmt.Printf("%08b ", v)
+	// }
+	// fmt.Printf("\n")
+
+	w.buffer = append(tree_size_bytes, w.buffer...)
+
+	w.Flush()
+	return nil
 }
-

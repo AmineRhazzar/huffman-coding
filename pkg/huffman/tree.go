@@ -38,10 +38,3 @@ func (n *Node) Display(space int) {
 	n.Left.Display(space)
 }
 
-func (n *Node) encode() string {
-	if n.Left == nil && n.Right == nil {
-		return "1"+string(n.ch)
-	}
-
-	return "0"+n.Left.encode()+n.Right.encode()
-}

@@ -67,7 +67,7 @@ func (h *Huffman) constructTree(t []byte) {
 					break
 				}
 			}
-			Insert[Node](&nodes, index, motherNode)
+			insert[Node](&nodes, index, motherNode)
 
 		} else {
 			h.tree = &(nodes[0])
@@ -98,15 +98,15 @@ func (h *Huffman) Encode(inputFile string, outputFile string) error {
 	h.constructTree(data)
 
 	w := Writer{
-		debug:    false,
-		ioWriter: f,
+		debug:     true,
+		io_writer: f,
 	}
 
 	// since we use a uint32 for tree size, it's gonna be encoded on 4 bytes even if it can be encoded on less
 	// we can further optimise this, we can use the first 3 bits to indicates how many bytes (SIZE_L) the size is encoded on (0->7 or 000 -> 111)
 	// and then we take the next SIZE_L bytes and that's the size of our tree. it doesn't seem like it's worth it
 	tree_size := w.WriteTree(h.tree)
-	tree_size_bytes, byte_encode_err := ByteEncode(tree_size)
+	tree_size_bytes, byte_encode_err := byteEncode(tree_size)
 
 	if byte_encode_err != nil {
 		return byte_encode_err
@@ -117,11 +117,12 @@ func (h *Huffman) Encode(inputFile string, outputFile string) error {
 		code := h.codes[b]
 		w.WriteMultipleBits(code...)
 	}
+
 	n, flush_err := w.Flush()
 
 	if flush_err != nil {
 		return flush_err
 	}
-	fmt.Printf("Written %d bytes. Original: %d bytes. Saved %0.2f%%.\n", n, len(data), float32(n)/float32(len(data)) * 100)
+	fmt.Printf("Written %d bytes. Original: %d bytes. Saved %0.2f%%.\n", n, len(data), float32(n)/float32(len(data))*100)
 	return nil
 }

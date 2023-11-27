@@ -23,7 +23,7 @@ func byteEncode(num uint32) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func getBit(b byte, i int) uint8 {
+func getBit(b byte, i uint8) uint8 {
 	idx := i % 8
 	var b_mask byte = 0b1000_0000 >> idx
 

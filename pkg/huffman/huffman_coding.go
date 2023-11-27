@@ -114,8 +114,7 @@ func (h *Huffman) Encode(inputFile string, outputFile string) error {
 	w.buffer = append(tree_size_bytes, w.buffer...)
 
 	for _, b := range data {
-		code := h.codes[b]
-		w.WriteMultipleBits(code...)
+		w.WriteMultipleBits(h.codes[b]...)
 	}
 
 	n, flush_err := w.Flush()

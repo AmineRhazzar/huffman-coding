@@ -85,13 +85,13 @@ func TestWriteBit(t *testing.T) {
 		},
 	}
 
-	for _, scenario := range test_cases {
+	for scenarioIdx, scenario := range test_cases {
 		t.Run(scenario.description, func(t *testing.T) {
 			scenario.writer.WriteBit(scenario.bit)
 			if !areWritersEqual(scenario.writer, scenario.expected_writer) {
-				t.Fatalf(`writers are not equal.
+				t.Fatalf(`Test %d Failed.
 				writer: %+v,
-				expected: %+v\n`, scenario.writer, scenario.expected_writer)
+				expected: %+v`, scenarioIdx, scenario.writer, scenario.expected_writer)
 			}
 		})
 	}
@@ -150,11 +150,13 @@ func TestWriteMultipleBits(t *testing.T) {
 		},
 	}
 
-	for _, scenario := range test_cases {
+	for scenarioIdx, scenario := range test_cases {
 		t.Run(scenario.description, func(t *testing.T) {
 			scenario.writer.WriteMultipleBits(scenario.bits...)
 			if !areWritersEqual(scenario.writer, scenario.expected_writer) {
-				t.Fatalf("writers are not equal. writer: %+v, expected: %+v\n", scenario.writer, scenario.expected_writer)
+				t.Fatalf(`Test %d Failed.
+				writer: %+v,
+				expected: %+v`, scenarioIdx, scenario.writer, scenario.expected_writer)
 			}
 		})
 	}
@@ -199,11 +201,13 @@ func TestWriteByte(t *testing.T) {
 		},
 	}
 
-	for _, scenario := range test_cases {
+	for scenarioIdx, scenario := range test_cases {
 		t.Run(scenario.description, func(t *testing.T) {
 			scenario.writer.WriteByte(scenario.b)
 			if !areWritersEqual(scenario.writer, scenario.expected_writer) {
-				t.Fatalf("writers are not equal. writer: %+v, expected: %+v\n", scenario.writer, scenario.expected_writer)
+				t.Fatalf(`Test %d Failed.
+				writer: %+v,
+				expected: %+v`, scenarioIdx, scenario.writer, scenario.expected_writer)
 			}
 		})
 	}
@@ -239,14 +243,14 @@ func TestWriteTree(t *testing.T) {
 
 	w.WriteTree(tree)
 	expected_writer := Writer{
-		buffer: []byte{0b00101000,0b01110100, 0b00010101, 0b00010101, 0b01000100, 0b10100001},
-		cursor: 1,
+		buffer:    []byte{0b00101000, 0b01110100, 0b00010101, 0b00010101, 0b01000100, 0b10100001},
+		cursor:    1,
 		curr_byte: 0b00000000,
 	}
 
 	if !areWritersEqual(w, expected_writer) {
-		t.Fatalf("writers are not equal. writer: %+v, expected: %+v\n", w, expected_writer)
+		t.Fatalf(`Test Write Tree Failed.
+		writer: %+v,
+		expected: %+v`, w, expected_writer)
 	}
 }
-
-

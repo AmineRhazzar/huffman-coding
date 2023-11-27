@@ -1,16 +1,15 @@
 package huffman
 
 import (
-	"fmt"
 	"io"
 )
 
 type Writer struct {
 	io_writer io.Writer
-	buffer   []byte
-	curr_byte byte // we write bits to this byte because we can't write a single bit to file
-	cursor   uint8 // index of current bit in curr_byte 0..7
-	debug    bool
+	buffer    []byte
+	curr_byte byte  // we write bits to this byte because we can't write a single bit to file
+	cursor    uint8 // index of current bit in curr_byte 0..7
+	debug     bool
 }
 
 func (w *Writer) WriteBit(bit uint8) int {
@@ -40,7 +39,7 @@ func (w *Writer) WriteByte(b byte) int {
 		w.buffer = append(w.buffer, b)
 	} else {
 		// b_mask is a byte where the first (8-cursor) bits are 1 and the rest is 0
-		var b_mask byte = (0xFF << w.cursor) & 0xFF
+		var b_mask byte = (0xFF << w.cursor)
 
 		var rest byte = b & (^b_mask) << (8 - w.cursor)
 		w.buffer = append(w.buffer, (b&b_mask>>w.cursor)|w.curr_byte)
@@ -57,18 +56,6 @@ func (w *Writer) WriteTree(n *Node) uint32 {
 	return uint32(w.WriteBit(0)) + w.WriteTree(n.Left) + w.WriteTree(n.Right)
 }
 
-func (w *Writer) Debug() {
-	fmt.Println("+++++++++++++++++++++++++++++")
-	fmt.Printf("cursor:   %d\n", w.cursor)
-	fmt.Printf("currByte: %08b\n", w.curr_byte)
-	fmt.Printf("buffer:  [ ")
-	for _, b := range w.buffer {
-		fmt.Printf("%08b ", b)
-	}
-	fmt.Printf("]\n")
-	fmt.Println("+++++++++++++++++++++++++++++")
-}
-
 func (w *Writer) Flush() (int, error) {
 	if w.cursor != 0 {
 		w.buffer = append(w.buffer, w.curr_byte)
@@ -77,10 +64,6 @@ func (w *Writer) Flush() (int, error) {
 	// we store the cursor in the last byte so that we can determine how many bits to read in the second-to-last byte
 	var lastByte byte = byte(w.cursor)
 	w.buffer = append(w.buffer, lastByte)
-
-	if w.debug {
-		w.Debug()
-	}
 
 	n, err := w.io_writer.Write(w.buffer)
 	if err != nil {

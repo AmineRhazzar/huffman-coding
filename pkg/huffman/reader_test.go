@@ -82,9 +82,10 @@ func TestReadByte_ShouldFail(t *testing.T) {
 		{
 			description: "read byte reaching second last byte, reading past second_last_byte_read_size",
 			// in this case the last byte is 2 so we can only read up to here
-			//                                                 v
+			//                                        v
 			data: []byte{0b0011_0010, 0b0100_0101, 0b0000_0101, 0b0000_0010},
-			// should fail because we start from here ^..........^ cursor goes more than read size limit
+			//                               ^..........^
+			// should fail because cursor goes up more than read size limit
 			idx:    1,
 			cursor: 4,
 		},
@@ -107,7 +108,69 @@ func TestReadByte_ShouldFail(t *testing.T) {
 	}
 }
 
-func TestReadBit(t *testing.T) {
+func TestReadTree_ShouldFail(t *testing.T) {
+	type test_case struct {
+		description            string
+		cursor                 uint8
+		idx                    int
+		data                   []byte
+		mock_tree              *Node
+		mock_tree_encoded_size int
+	}
+
+	test_cases := []test_case{
+		{
+			description:            "read tree, buffer size smaller than tree size",
+			data:                   []byte{0b00101000, 0b01110100, 0b00010101, 0b00010101, 0b01000100, 0b10100001, 0b00000000},
+			idx:                    0,
+			cursor:                 0,
+			mock_tree:              MOCK_TREE,
+			mock_tree_encoded_size: MOCK_TREE_ENCODED_SIZE,
+		},
+		{
+			description:            "read tree, second_last_byte_read_size not enough",
+			data:                   []byte{0b00101000, 0b01110100, 0b00010010, 0b10001100, 0b10100010, 0b01010000, 0b10101000, 0b10100000, 0b00000001},
+			//                               ^start=10                                                                             ^end=59
+
+			idx:                    0,
+			cursor:                 0,
+			mock_tree:              MOCK_TREE_2,
+			mock_tree_encoded_size: MOCK_TREE_2_ENCODED_SIZE,
+		},
+		{
+			description: "read tree, buffer size smaller than tree size, index!=0, cursor!=0",
+			data:        []byte{0b00110001, 0b01001010, 0b00011101, 0b00000101, 0b01000101, 0b01010001, 0b00101000, 0b01000000, 0b00000001},
+			//                                  ^start=10                                                                ^end=59
+			idx:                    1,
+			cursor:                 2,
+			mock_tree:              MOCK_TREE,
+			mock_tree_encoded_size: MOCK_TREE_ENCODED_SIZE,
+		},
+	}
+
+	for scenarioIdx, scenario := range test_cases {
+		t.Run(scenario.description, func(t *testing.T) {
+			r := GetReader(scenario.data)
+			r.cursor = scenario.cursor
+			r.idx = scenario.idx
+
+			start_index := r.idx*8 + int(r.cursor)
+			tree, err := r.ReadTree(start_index, scenario.mock_tree_encoded_size)
+			current_index := r.idx*8 + int(r.cursor)
+
+			equal_trees := areTreesEqual(tree, scenario.mock_tree)
+			if err == nil ||
+				current_index-start_index == scenario.mock_tree_encoded_size ||
+				equal_trees {
+				t.Fatalf(`Test %d Failed.
+				Got: equal trees: %v, err: %v, size read: %d
+				Wanted: equal trees: false, err != <nil>, size read != %d`, scenarioIdx, equal_trees, err, current_index-start_index, scenario.mock_tree_encoded_size)
+			}
+		})
+	}
+}
+
+func TestReadBit_ShouldSucceed(t *testing.T) {
 	type test_case struct {
 		description  string
 		cursor       uint8
@@ -156,7 +219,7 @@ func TestReadBit(t *testing.T) {
 	}
 }
 
-func TestReadByte(t *testing.T) {
+func TestReadByte_ShouldSucceed(t *testing.T) {
 	type test_case struct {
 		description   string
 		cursor        uint8
@@ -212,7 +275,7 @@ func TestReadByte(t *testing.T) {
 	}
 }
 
-func TestReadTree(t *testing.T) {
+func TestReadTree_ShouldSucceed(t *testing.T) {
 	type test_case struct {
 		description string
 		cursor      uint8
@@ -257,10 +320,9 @@ func TestReadTree(t *testing.T) {
 				current_index-start_index != MOCK_TREE_ENCODED_SIZE ||
 				!equal_trees {
 				t.Fatalf(`Test %d Failed.
-				Got: equal trees: %v, err: %v, size read: %v
+				Got: equal trees: %v, err: %v, size read: %d
 				Wanted: equal trees: true, err: <nil>, size read: %d`, scenarioIdx, equal_trees, err, current_index-start_index, MOCK_TREE_ENCODED_SIZE)
 			}
 		})
 	}
-
 }

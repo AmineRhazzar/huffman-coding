@@ -4,36 +4,6 @@ import (
 	"testing"
 )
 
-/*
-  - 20
-    -----------------
-    12				8
-
------------     ---------
-C,6		A,6		E,5		3
-
-	-----------
-	D,2		B,1
-*/
-var MOCK_TREE *Node = &Node{
-	weight: 20,
-	Left: &Node{
-		weight: 12,
-		Left:   &Node{ch: 'C', weight: 6},
-		Right:  &Node{ch: 'A', weight: 6},
-	},
-	Right: &Node{
-		weight: 8,
-		Left:   &Node{ch: 'E', weight: 5},
-		Right: &Node{weight: 3,
-			Left:  &Node{ch: 'D', weight: 2},
-			Right: &Node{ch: 'B', weight: 1},
-		},
-	},
-}
-
-const MOCK_TREE_ENCODED_SIZE int = 49
-
 func TestWriteBit(t *testing.T) {
 	type test_case struct {
 		description     string

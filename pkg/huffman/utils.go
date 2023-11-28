@@ -3,6 +3,7 @@ package huffman
 import (
 	"bytes"
 	"encoding/binary"
+	// "fmt"
 )
 
 func insert[T any](a *[]T, index int, value T) {
@@ -54,8 +55,11 @@ func areWritersEqual(w1, w2 Writer) bool {
 }
 
 func areTreesEqual(n1, n2 *Node) bool {
-	if n1 == nil && n2 == nil {
-		return true
+	if n1 == nil || n2 == nil {
+		if(n1 == nil && n2 == nil) {	
+			return true
+		}
+		return false
 	}
 	if n1.ch != n2.ch {
 		return false

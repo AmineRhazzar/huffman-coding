@@ -68,7 +68,6 @@ func (r *Reader) ReadByte() (byte, error) {
 	if r.idx == r.buf_len-3 && r.cursor > r.second_last_byte_read_size && r.second_last_byte_read_size != 0 {
 		return b, fmt.Errorf("can't read byte at index %d, cursor %d. buffer [... %08b %08b %08b], second_last_byte_read_size %d", r.idx, r.cursor, r.buf[r.idx], r.buf[r.idx+1], r.buf[r.idx+2], r.second_last_byte_read_size)
 	}
-
 	if r.cursor == 0 {
 		b = r.buf[r.idx]
 	} else {
@@ -96,30 +95,30 @@ func (r *Reader) ReadTree(read_start_index int, tree_size int) (*Node, error) {
 
 	bit, err := r.ReadBit()
 	if err != nil {
-		return &Node{}, err
+		return nil, err
 	}
 
 	if bit == 1 {
 		ch, read_byte_err := r.ReadByte()
 		if read_byte_err != nil {
-			return &Node{}, read_byte_err
+			return nil, read_byte_err
 		}
 		return &Node{ch: ch}, nil
 	}
 
-	left_node, read_left_err := r.ReadTree(read_start_index, tree_size-1)
+	left_node, read_left_err := r.ReadTree(read_start_index, tree_size)
 	if read_left_err != nil  {
 		if(read_left_err == io.EOF){
 			return nil, nil
 		}
-		return &Node{}, read_left_err
+		return nil, read_left_err
 	}
-	right_node, read_right_err := r.ReadTree(read_start_index, tree_size-1)
+	right_node, read_right_err := r.ReadTree(read_start_index, tree_size)
 	if read_right_err != nil {
 		if(read_left_err == io.EOF){
 			return nil, nil
 		}
-		return &Node{}, read_right_err
+		return nil, read_right_err
 	}
 	return &Node{
 		Left:  left_node,

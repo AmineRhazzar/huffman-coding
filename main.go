@@ -7,7 +7,9 @@ import (
 
 func main() {
 
-	h := huffman.Huffman{}
+	h := huffman.Huffman{
+		Debug: true,
+	}
 
 	err := h.Encode("example.txt", "output.huf")
 

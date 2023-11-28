@@ -9,6 +9,7 @@ import (
 type Huffman struct {
 	tree  *Node
 	codes map[byte]([]uint8)
+	Debug bool
 }
 
 func (h *Huffman) DisplayTree() {
@@ -75,6 +76,10 @@ func (h *Huffman) constructTree(t []byte) {
 		}
 	}
 
+	if(h.Debug) {
+		h.tree.Display(0)
+	}
+
 	h.codes = make(map[byte][]uint8)
 	for b := range occurences {
 		var path []uint8
@@ -98,7 +103,7 @@ func (h *Huffman) Encode(inputFile string, outputFile string) error {
 	h.constructTree(data)
 
 	w := Writer{
-		debug:     true,
+		debug:     h.Debug,
 		io_writer: f,
 	}
 

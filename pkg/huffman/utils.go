@@ -52,3 +52,13 @@ func AreByteArraysEqual(b1, b2 []byte) bool {
 func areWritersEqual(w1, w2 Writer) bool {
 	return AreByteArraysEqual(w1.buffer, w2.buffer) && w1.curr_byte == w2.curr_byte && w1.cursor == w2.cursor
 }
+
+func areTreesEqual(n1, n2 *Node) bool {
+	if n1 == nil && n2 == nil {
+		return true
+	}
+	if n1.ch != n2.ch {
+		return false
+	}
+	return areTreesEqual(n1.Left, n2.Left) && areTreesEqual(n1.Right, n2.Right)
+}

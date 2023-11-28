@@ -4,6 +4,36 @@ import (
 	"testing"
 )
 
+/*
+  - 20
+    -----------------
+    12				8
+
+-----------     ---------
+C,6		A,6		E,5		3
+
+	-----------
+	D,2		B,1
+*/
+var MOCK_TREE *Node = &Node{
+	weight: 20,
+	Left: &Node{
+		weight: 12,
+		Left:   &Node{ch: 'C', weight: 6},
+		Right:  &Node{ch: 'A', weight: 6},
+	},
+	Right: &Node{
+		weight: 8,
+		Left:   &Node{ch: 'E', weight: 5},
+		Right: &Node{weight: 3,
+			Left:  &Node{ch: 'D', weight: 2},
+			Right: &Node{ch: 'B', weight: 1},
+		},
+	},
+}
+
+const MOCK_TREE_ENCODED_SIZE int = 49
+
 func TestWriteBit(t *testing.T) {
 	type test_case struct {
 		description     string
@@ -214,41 +244,16 @@ func TestWriteByte(t *testing.T) {
 }
 
 func TestWriteTree(t *testing.T) {
-	/**					20
-	        	-----------------
-				12				8
-			-----------     ---------
-			C,6		A,6		E,5		3
-								-----------
-								D,2		B,1
-	*/
-	tree := &Node{
-		weight: 20,
-		Left: &Node{
-			weight: 12,
-			Left:   &Node{ch: 'C', weight: 6},
-			Right:  &Node{ch: 'A', weight: 6},
-		},
-		Right: &Node{
-			weight: 8,
-			Left:   &Node{ch: 'E', weight: 5},
-			Right: &Node{weight: 3,
-				Left:  &Node{ch: 'D', weight: 2},
-				Right: &Node{ch: 'B', weight: 1},
-			},
-		},
-	}
-
 	w := Writer{}
 
-	w.WriteTree(tree)
+	tree_encoded_size := w.WriteTree(MOCK_TREE)
 	expected_writer := Writer{
 		buffer:    []byte{0b00101000, 0b01110100, 0b00010101, 0b00010101, 0b01000100, 0b10100001},
 		cursor:    1,
 		curr_byte: 0b00000000,
 	}
 
-	if !areWritersEqual(w, expected_writer) {
+	if !areWritersEqual(w, expected_writer) || tree_encoded_size != uint32(MOCK_TREE_ENCODED_SIZE) {
 		t.Fatalf(`Test Write Tree Failed.
 		writer: %+v,
 		expected: %+v`, w, expected_writer)

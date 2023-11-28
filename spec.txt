@@ -16,3 +16,5 @@
 
 - we read and decode the rest of buffer
 
+- features
+  + we can provide input files either from local path or with a url to a remote file

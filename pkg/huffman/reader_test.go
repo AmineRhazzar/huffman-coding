@@ -211,3 +211,56 @@ func TestReadByte(t *testing.T) {
 		})
 	}
 }
+
+func TestReadTree(t *testing.T) {
+	type test_case struct {
+		description string
+		cursor      uint8
+		idx         int
+		data        []byte
+	}
+
+	test_cases := []test_case{
+		{
+			description: "read tree, index=0,cursor=0",
+			data:        []byte{0b00101000, 0b01110100, 0b00010101, 0b00010101, 0b01000100, 0b10100001, 0b00000000, 0b00000001},
+			idx:         0,
+			cursor:      0,
+		},
+		{
+			description: "read tree, index!=0, cursor != 0,",
+			data:        []byte{0b00110001, 0b01001010, 0b00011101, 0b00000101, 0b01000101, 0b01010001, 0b00101000, 0b01000000, 0b00000011},
+			//                                  ^10                                                                      ^59
+			idx:    1,
+			cursor: 2,
+		},
+		{
+			description: "read tree, buffer bigger than tree",
+			data:        []byte{0b00110001, 0b01001010, 0b00011101, 0b00000101, 0b01000101, 0b01010001, 0b00101000, 0b01010010, 0b00100011, 0b00101010, 0b0000_0101},
+			idx:         1,
+			cursor:      2,
+		},
+	}
+
+	for scenarioIdx, scenario := range test_cases {
+		t.Run(scenario.description, func(t *testing.T) {
+			r := GetReader(scenario.data)
+			r.cursor = scenario.cursor
+			r.idx = scenario.idx
+
+			start_index := r.idx*8 + int(r.cursor)
+			tree, err := r.ReadTree(start_index, MOCK_TREE_ENCODED_SIZE)
+			current_index := r.idx*8 + int(r.cursor)
+
+			equal_trees := areTreesEqual(tree, MOCK_TREE)
+			if err != nil ||
+				current_index-start_index != MOCK_TREE_ENCODED_SIZE ||
+				!equal_trees {
+				t.Fatalf(`Test %d Failed.
+				Got: equal trees: %v, err: %v, size read: %v
+				Wanted: equal trees: true, err: <nil>, size read: %d`, scenarioIdx, equal_trees, err, current_index-start_index, MOCK_TREE_ENCODED_SIZE)
+			}
+		})
+	}
+
+}

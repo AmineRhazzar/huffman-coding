@@ -15,13 +15,17 @@ func insert[T any](a *[]T, index int, value T) {
 	(*a)[index] = value
 }
 
-func byteEncode(num uint32) ([]byte, error) {
+func intToBytes(num uint32) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.BigEndian, num)
 	if err != nil {
 		return []byte{}, err
 	}
 	return buf.Bytes(), nil
+}
+
+func bytesToInt(bytes []byte) uint32 {
+	return binary.BigEndian.Uint32(bytes)
 }
 
 func getBit(b byte, i uint8) uint8 {

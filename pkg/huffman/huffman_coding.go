@@ -88,33 +88,25 @@ func (h *Huffman) constructTree(t []byte) {
 	}
 }
 
-func (h *Huffman) Encode(inputFile string, outputFile string) error {
+func (h *Huffman) Encode(inputFile string, outputFile string) (int, error) {
 	data, read_err := os.ReadFile(inputFile)
 	if read_err != nil {
-		return read_err
+		return 0, read_err
 	}
-
-	f, write_err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0600)
-	if write_err != nil {
-		return write_err
-	}
-	defer f.Close()
 
 	h.constructTree(data)
 
 	w := Writer{
-		debug:     h.Debug,
-		io_writer: f,
+		debug: h.Debug,
 	}
 
-	// since we use a uint32 for tree size, it's gonna be encoded on 4 bytes even if it can be encoded on less
-	// we can further optimise this, we can use the first 3 bits to indicates how many bytes (SIZE_L) the size is encoded on (0->7 or 000 -> 111)
-	// and then we take the next SIZE_L bytes and that's the size of our tree. it doesn't seem like it's worth it
 	tree_size := w.WriteTree(h.tree)
-	tree_size_bytes, byte_encode_err := byteEncode(tree_size)
+
+	// get byte representation of tree_size, it's uint32 so it's 4 bytes
+	tree_size_bytes, byte_encode_err := intToBytes(tree_size)
 
 	if byte_encode_err != nil {
-		return byte_encode_err
+		return 0, byte_encode_err
 	}
 	w.buffer = append(tree_size_bytes, w.buffer...)
 
@@ -122,11 +114,67 @@ func (h *Huffman) Encode(inputFile string, outputFile string) error {
 		w.WriteMultipleBits(h.codes[b]...)
 	}
 
+	f, write_err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0600)
+	if write_err != nil {
+		return 0, write_err
+	}
+	defer f.Close()
+	w.io_writer = f
+
 	n, flush_err := w.Flush()
 
-	if flush_err != nil {
-		return flush_err
+	return n, flush_err
+}
+
+// Decode
+func (h *Huffman) Decode(inputFile string, outputFile string) (int, error) {
+	data, read_err := os.ReadFile(inputFile)
+	if read_err != nil {
+		return 0, read_err
 	}
-	fmt.Printf("Written %d bytes. Original: %d bytes. Saved %0.2f%%.\n", n, len(data), float32(n)/float32(len(data))*100)
-	return nil
+
+	r := GetReader(data)
+
+	// read first 4 bytes, they represent tree size in bits
+	tree_size_bytes := make([]byte, 4)
+	for i := 0; i < 4; i++ {
+		b, read_tree_size_err := r.ReadByte()
+		if read_tree_size_err != nil {
+			return 0, fmt.Errorf("error reading tree size %v", read_tree_size_err)
+		}
+		tree_size_bytes[i] = b
+	}
+
+	tree_size := bytesToInt(tree_size_bytes)
+	tree, read_tree_err := r.ReadTree(r.idx*8+int(r.cursor), int(tree_size))
+
+	if read_tree_err != nil {
+		return 0, fmt.Errorf("error reading tree %v", read_tree_err)
+	}
+
+	var decoded_data []byte
+	current := tree
+	var bit uint8
+	var read_bit_err error = nil
+	for read_bit_err == nil {
+		bit, read_bit_err = r.ReadBit()
+		if bit == 0 {
+			current = current.Left
+		} else {
+			current = current.Right
+		}
+		if current.Left == nil && current.Right == nil {
+			decoded_data = append(decoded_data, current.ch)
+			current = tree
+		}
+	}
+
+	f, open_write_err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0600)
+	if open_write_err != nil {
+		return 0, open_write_err
+	}
+	defer f.Close()
+	n, write_err := f.Write(decoded_data)
+
+	return n, write_err
 }

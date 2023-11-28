@@ -77,7 +77,7 @@ func (r *Reader) ReadByte() (byte, error) {
 		var y_mask byte = 0xff << (8 - r.cursor)
 
 		lastOfx := (x & x_mask) << r.cursor
-		firstOfy := (y &y_mask) >> (8-r.cursor)
+		firstOfy := (y & y_mask) >> (8 - r.cursor)
 		b = lastOfx | firstOfy
 	}
 
@@ -85,6 +85,44 @@ func (r *Reader) ReadByte() (byte, error) {
 	return b, nil
 }
 
-/**
-1001001 01001100 01011001
-*/
+
+func (r *Reader) ReadTree(read_start_index int, tree_size int) (*Node, error) {
+
+	read_current_index := 8 * r.idx + int(r.cursor)
+
+	if(read_current_index - read_start_index >= tree_size) {
+		return nil, io.EOF
+	}
+
+	bit, err := r.ReadBit()
+	if err != nil {
+		return &Node{}, err
+	}
+
+	if bit == 1 {
+		ch, read_byte_err := r.ReadByte()
+		if read_byte_err != nil {
+			return &Node{}, read_byte_err
+		}
+		return &Node{ch: ch}, nil
+	}
+
+	left_node, read_left_err := r.ReadTree(read_start_index, tree_size-1)
+	if read_left_err != nil  {
+		if(read_left_err == io.EOF){
+			return nil, nil
+		}
+		return &Node{}, read_left_err
+	}
+	right_node, read_right_err := r.ReadTree(read_start_index, tree_size-1)
+	if read_right_err != nil {
+		if(read_left_err == io.EOF){
+			return nil, nil
+		}
+		return &Node{}, read_right_err
+	}
+	return &Node{
+		Left:  left_node,
+		Right: right_node,
+	}, nil
+}

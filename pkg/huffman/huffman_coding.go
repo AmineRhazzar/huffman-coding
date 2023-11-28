@@ -76,7 +76,7 @@ func (h *Huffman) constructTree(t []byte) {
 		}
 	}
 
-	if(h.Debug) {
+	if h.Debug {
 		h.tree.Display(0)
 	}
 

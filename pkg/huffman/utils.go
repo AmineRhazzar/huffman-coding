@@ -56,7 +56,7 @@ func areWritersEqual(w1, w2 Writer) bool {
 
 func areTreesEqual(n1, n2 *Node) bool {
 	if n1 == nil || n2 == nil {
-		if(n1 == nil && n2 == nil) {	
+		if n1 == nil && n2 == nil {
 			return true
 		}
 		return false

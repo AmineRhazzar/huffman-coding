@@ -65,10 +65,10 @@ func (w *Writer) Flush() (int, error) {
 	// we store the cursor in the last byte so that we can determine how many bits to read in the second-to-last byte
 	var lastByte byte = byte(w.cursor)
 	w.buffer = append(w.buffer, lastByte)
-	
-	if(w.debug) {
+
+	if w.debug {
 		fmt.Println("buffer:")
-		for _, b:= range(w.buffer) {
+		for _, b := range w.buffer {
 			fmt.Printf("%08b ", b)
 		}
 		fmt.Printf("\n")

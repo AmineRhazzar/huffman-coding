@@ -128,8 +128,8 @@ func TestReadTree_ShouldFail(t *testing.T) {
 			mock_tree_encoded_size: MOCK_TREE_ENCODED_SIZE,
 		},
 		{
-			description:            "read tree, second_last_byte_read_size not enough",
-			data:                   []byte{0b00101000, 0b01110100, 0b00010010, 0b10001100, 0b10100010, 0b01010000, 0b10101000, 0b10100000, 0b00000001},
+			description: "read tree, second_last_byte_read_size not enough",
+			data:        []byte{0b00101000, 0b01110100, 0b00010010, 0b10001100, 0b10100010, 0b01010000, 0b10101000, 0b10100000, 0b00000001},
 			//                               ^start=10                                                                             ^end=59
 
 			idx:                    0,

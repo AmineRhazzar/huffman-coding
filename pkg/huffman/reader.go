@@ -84,12 +84,11 @@ func (r *Reader) ReadByte() (byte, error) {
 	return b, nil
 }
 
-
 func (r *Reader) ReadTree(read_start_index int, tree_size int) (*Node, error) {
 
-	read_current_index := 8 * r.idx + int(r.cursor)
+	read_current_index := 8*r.idx + int(r.cursor)
 
-	if(read_current_index - read_start_index >= tree_size) {
+	if read_current_index-read_start_index >= tree_size {
 		return nil, io.EOF
 	}
 
@@ -107,15 +106,15 @@ func (r *Reader) ReadTree(read_start_index int, tree_size int) (*Node, error) {
 	}
 
 	left_node, read_left_err := r.ReadTree(read_start_index, tree_size)
-	if read_left_err != nil  {
-		if(read_left_err == io.EOF){
+	if read_left_err != nil {
+		if read_left_err == io.EOF {
 			return nil, nil
 		}
 		return nil, read_left_err
 	}
 	right_node, read_right_err := r.ReadTree(read_start_index, tree_size)
 	if read_right_err != nil {
-		if(read_left_err == io.EOF){
+		if read_left_err == io.EOF {
 			return nil, nil
 		}
 		return nil, read_right_err

@@ -84,6 +84,9 @@ func (h *Huffman) constructTree(t []byte) {
 		var path []uint8
 		h.tree.Find(b, &path, true, 0)
 		h.codes[b] = path
+		if __DEBUG__ {
+			fmt.Printf("path(%s)=%v\n", string(b), path)
+		}
 	}
 }
 
@@ -146,26 +149,39 @@ func (h *Huffman) Decode(inputFile string, outputFile string) (float64, error) {
 	}
 
 	tree_size := bytesToInt(tree_size_bytes)
-	tree, read_tree_err := r.ReadTree(r.idx*8+int(r.cursor), int(tree_size))
+	root, read_tree_err := r.ReadTree(r.idx*8+int(r.cursor), int(tree_size))
 
 	if read_tree_err != nil {
 		return 0, fmt.Errorf("error reading tree %v", read_tree_err)
 	}
 
+	if(__DEBUG__) {
+		root.Display(0)
+	}
+	
 	var decoded_data []byte
-	current := tree
-	var bit uint8
-	var read_bit_err error = nil
-	for read_bit_err == nil {
-		bit, read_bit_err = r.ReadBit()
-		if bit == 0 {
-			current = current.Left
-		} else {
-			current = current.Right
+	current := root
+	for {
+		bit, read_bit_err := r.ReadBit()
+
+		if(read_bit_err != nil) {
+			break;
 		}
-		if current.Left == nil && current.Right == nil {
-			decoded_data = append(decoded_data, current.ch)
-			current = tree
+
+		if root.isLeaf() {
+			// single-noded tree
+			decoded_data = append(decoded_data, root.ch)
+		} else {
+			if bit == 0 {
+				current = current.Left
+			} else {
+				current = current.Right
+			}
+
+			if current.Left == nil && current.Right == nil {
+				decoded_data = append(decoded_data, current.ch)
+				current = root
+			}
 		}
 	}
 

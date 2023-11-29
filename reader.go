@@ -46,7 +46,6 @@ func (r *Reader) ReadBit() (uint8, error) {
 	} else {
 		r.cursor++
 	}
-
 	return bit, nil
 }
 

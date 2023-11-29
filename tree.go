@@ -43,7 +43,13 @@ func (n *Node) Find(b byte, path *[]uint8, isRoot bool, val uint8) bool {
 	if n == nil {
 		return false
 	}
-	if !isRoot {
+	if isRoot {
+		if(n.Left == nil && n.Right == nil) {
+			// single-noded tree => one repeating character in whole file
+			*path = append(*path, 0)
+			return true
+		}
+	} else {
 		*path = append(*path, val)
 	}
 	if n.ch == b {
@@ -56,4 +62,8 @@ func (n *Node) Find(b byte, path *[]uint8, isRoot bool, val uint8) bool {
 
 	*path = (*path)[:len(*path)-1]
 	return false
+}
+
+func (n *Node)isLeaf() bool {
+	return n.Left == nil && n.Right == nil
 }

@@ -87,7 +87,9 @@ func (h *Huffman) constructTree(t []byte) {
 	}
 }
 
-func (h *Huffman) Encode(inputFile string, outputFile string) (int, error) {
+// Encodes a file into using Huffman encoding
+// Returns ratio of outputsize / inputsize, and whatever error that may have resulted
+func (h *Huffman) Encode(inputFile string, outputFile string) (float64, error) {
 	data, read_err := os.ReadFile(inputFile)
 	if read_err != nil {
 		return 0, read_err
@@ -120,11 +122,12 @@ func (h *Huffman) Encode(inputFile string, outputFile string) (int, error) {
 
 	n, flush_err := w.Flush()
 
-	return n, flush_err
+	return float64(n) / float64(len(data)), flush_err
 }
 
-// Decode
-func (h *Huffman) Decode(inputFile string, outputFile string) (int, error) {
+// Decodes huffman-encoded input file to output file.
+// Returns ratio of outputsize / inputsize written to outputFile, and whatever error that may have resulted
+func (h *Huffman) Decode(inputFile string, outputFile string) (float64, error) {
 	data, read_err := os.ReadFile(inputFile)
 	if read_err != nil {
 		return 0, read_err
@@ -173,5 +176,5 @@ func (h *Huffman) Decode(inputFile string, outputFile string) (int, error) {
 	defer f.Close()
 	n, write_err := f.Write(decoded_data)
 
-	return n, write_err
+	return float64(len(data)) / float64(n), write_err
 }

@@ -1,4 +1,4 @@
-package huffman
+package main
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ type Writer struct {
 	buffer    []byte
 	curr_byte byte  // we write bits to this byte because we can't write a single bit to file
 	cursor    uint8 // index of current bit in curr_byte 0..7
-	debug     bool
 }
 
 func (w *Writer) WriteBit(bit uint8) int {
@@ -66,7 +65,7 @@ func (w *Writer) Flush() (int, error) {
 	var lastByte byte = byte(w.cursor)
 	w.buffer = append(w.buffer, lastByte)
 
-	if w.debug {
+	if __DEBUG__ {
 		fmt.Println("buffer:")
 		for _, b := range w.buffer {
 			fmt.Printf("%08b ", b)

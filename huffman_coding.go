@@ -1,4 +1,4 @@
-package huffman
+package main
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 type Huffman struct {
 	tree  *Node
 	codes map[byte]([]uint8)
-	Debug bool
 }
 
 func (h *Huffman) DisplayTree() {
@@ -76,7 +75,7 @@ func (h *Huffman) constructTree(t []byte) {
 		}
 	}
 
-	if h.Debug {
+	if __DEBUG__ {
 		h.tree.Display(0)
 	}
 
@@ -96,9 +95,7 @@ func (h *Huffman) Encode(inputFile string, outputFile string) (int, error) {
 
 	h.constructTree(data)
 
-	w := Writer{
-		debug: h.Debug,
-	}
+	w := Writer{}
 
 	tree_size := w.WriteTree(h.tree)
 
